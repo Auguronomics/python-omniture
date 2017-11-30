@@ -312,14 +312,14 @@ class Query(object):
                 interval = 30
             self.log.debug("Check Interval: %s seconds", interval)
             
-    def is_ready(self):
+    def is_ready(self, format='json'):
         """ inspects the response to see if the report is ready """
         if self.status == self.STATUSES[0]:
             raise ReportNotSubmittedError('{"message":"Doh! the report needs to be submitted first"}')
         elif self.status == self.STATUSES[1]:
             try:
                 # the request method catches the report and populates it automatically
-                response = self.suite.request('Report','Get',{'reportID': self.id})
+                response = self.suite.request('Report','Get',{'reportID': self.id, 'format': format})
                 self.status = self.STATUSES[2]
                 self.unprocessed_response = response
                 self.processed_response = self.report(response, self)
@@ -334,7 +334,9 @@ class Query(object):
 
     def sync(self, heartbeat=None, interval=0.01):
         """ Run the report synchronously,"""
+        print("sync called")
         if self.status == self.STATUSES[0]:
+            print("Queing Report")
             self.queue()
             self.probe(heartbeat, interval)
         if self.status == self.STATUSES[1]:

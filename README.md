@@ -1,7 +1,4 @@
 # python-omniture
-[![Build Status](https://travis-ci.org/dancingcactus/python-omniture.svg?branch=master)](https://travis-ci.org/dancingcactus/python-omniture)
-[![codecov](https://codecov.io/gh/dancingcactus/python-omniture/branch/master/graph/badge.svg)](https://codecov.io/gh/dancingcactus/python-omniture)
-
 
 `python-omniture` is a wrapper around the Adobe Analytics API.
 
@@ -11,15 +8,11 @@ closer to the metal.
 
 ## Installation
 
-Through PyPI (older version):
-
-    pip install omniture
-
 Latest and greatest:
 
-    pip install git+http://github.com/dancingcactus/python-omniture.git
+    pip install git+http://tfs.radio-canada.ca:8080/tfs/ISN/Connaissance%20Auditoire/_git/BigData/omniture
     
-    supports python 2.7 and 3.5+
+    supports python 3.5+
 
 ## Authentication
 
@@ -53,7 +46,7 @@ reporting suites:
 
 ```python
     print analytics.suites
-    suite = analytics.suites['reportsuite_name']
+    suite = analytics.suites['rc-toutv-all']
     print suite
     print suite.metrics
     print suite.elements
@@ -176,7 +169,6 @@ In these cases, it can be useful to use the lower-level access this module provi
         .metric('pageviews)
         .set(anomalyDetection='month')
 
-
     print query
 ```
 
@@ -278,6 +270,28 @@ Company.GetReportSuites I would do
 ```python
     response = analytics.request('Company', 'GetReportSuites')
 ```
+### Export Data Warehouse Reports to CSV file
+```python
+    query = suite.report \
+    .range('2017-01-01', '2017-01-31', granularity='day') \
+    .metric('videostart') \
+    .metric('videotime') \
+    .element('evar55') \
+    .element('evar54') \
+    .element('evar41') \
+    .element('evar56') \
+    .element('evar57') \
+    .element('mobiledevicetype') \
+    .set('source','warehouse') #needed to use Data warehouse sources
+    .async()
+
+    while not query.is_ready('csv'):
+        time.sleep(1)
+        
+    data = query.get_report()
+    with open("{0}.csv".format(report_name), 'w', encoding='utf-8', errors='ignore') as output_file:
+        output_file.write(data.csv)
+```
 
 ### Contributing
 Feel free to contribute by filing issues or issuing a pull reqeust.
@@ -295,7 +309,3 @@ If you want to run unit tests
     python -m unittest discover
 ```
 
-Contributers
-Special Thanks to
-* [adibbehjat](https://github.com/adibbehjat) for helping think through the client side validation and when to skip it
-* [aarontoledo](https://github.com/aarontoledo) for helping with the dreaded classificaitons bug

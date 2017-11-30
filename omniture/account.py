@@ -93,7 +93,13 @@ class Account(object):
             headers=self._build_token()
             )
         self.log.debug("Response for %s.%s:%s", api, method, response.text)
-        json_response = response.json()
+        if 'format' in query:
+            if query['format'] == "csv" and response.text !='{"error":"report_not_ready","error_description":"Report not ready","error_uri":null}':
+                json_response = response.text
+            else:
+                json_response = response.json()
+        else:
+            json_response = response.json()
 
         if type(json_response) == dict:
             self.log.debug("Error Code %s", json_response.get('error'))
