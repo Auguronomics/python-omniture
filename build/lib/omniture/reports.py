@@ -56,24 +56,21 @@ class Report(object):
         """ Parse out the relevant data from the report and store it for easy access
             Should only be used internally to the class
         """
-        self.timing = {
-            'queue': float(self.raw['waitSeconds']),
-            'execution': float(self.raw['runSeconds']),
-        }
-        self.log.debug("Report Wait Time: %s, Report Execution Time: %s", self.timing['queue'], self.timing['execution'])
-        self.report = report = self.raw['report']
-        self.metrics = Value.list('metrics', report['metrics'], self.suite, 'name', 'id')
-        self.elements = Value.list('elements', report['elements'], self.suite, 'name', 'id')
-        self.period = str(report['period'])
-        self.type = str(report['type'])
-
-        segments = report.get('segments')
-        if segments:
-            self.segments = []
-            for s in segments:
-                self.segments.append(self.query.suite.segments[s['id']])
-        else:
-            self.segments = None
+        if 'waitSeconds' in self.raw:
+            self.timing = {'queue': float(self.raw['waitSeconds']),'execution': float(self.raw['runSeconds'])}
+            self.log.debug("Report Wait Time: %s, Report Execution Time: %s", self.timing['queue'], self.timing['execution'])
+            self.report = report = self.raw['report']
+            self.metrics = Value.list('metrics', report['metrics'], self.suite, 'name', 'id')
+            self.elements = Value.list('elements', report['elements'], self.suite, 'name', 'id')
+            self.period = str(report['period'])
+            self.type = str(report['type'])            
+            segments = report.get('segments')
+            if segments:
+                self.segments = []
+                for s in segments:
+                    self.segments.append(self.query.suite.segments[s['id']])
+            else:
+                self.segments = None
 
         #Set as none until it is actually used
         self.dict_data = None
@@ -89,6 +86,13 @@ class Report(object):
             self.dict_data = self.parse_rows(self.report['data'])
 
         return self.dict_data
+    @property
+    def csv(self):
+        """ Returns the report data as a csv file for easy quering
+            It generates the dicts on the 1st call then simply returns the reference to the data in subsequent calls
+        """
+        return self.raw
+
 
     def parse_rows(self,row, level=0, upperlevels=None):
         """
@@ -155,8 +159,6 @@ class Report(object):
                             data[str(self.metrics[index].id)] = float(metric)
                         else:
                             data[str(self.metrics[index].id)] = int(metric)
-
-
 
         if len(data_set)>0:
             return data_set
